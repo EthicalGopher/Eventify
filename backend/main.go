@@ -37,7 +37,7 @@ func main() {
 	}))
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowMethods: "POST,GET",
+		AllowMethods: "POST,GET,PUT,DELETE",
 		AllowOrigins: "*",
 	}))
 	server.Unauthorized(app)

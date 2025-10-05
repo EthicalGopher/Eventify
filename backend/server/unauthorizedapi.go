@@ -4,6 +4,7 @@ package server
 import (
 	"eventify/datatype"
 	"eventify/db"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -25,7 +26,7 @@ func Unauthorized(app *fiber.App) {
 		if err := c.BodyParser(&body); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		if body.Password == "" || body.Email == "" || body.Name == "" || body.Role == "" {
+		if body.Password == "" || body.Email == "" || body.Name == "" || (body.Role != "organizer" && body.Role != "user") {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Password,Email,Name,Role might be missing"})
 		}
 		if body.ID == "" {
@@ -33,26 +34,30 @@ func Unauthorized(app *fiber.App) {
 		}
 
 		password, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 		body.Password = string(password)
 		claims := jwt.MapClaims{
 			"id":  body.ID,
 			"exp": time.Now().Add(time.Hour * 72).Unix(),
 		}
-		_, err = db.AddUsers(body)
+		result, err := db.AddUsers(body)
+		fmt.Println(result)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenString, err := token.SignedString([]byte(Secret))
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		c.Cookie(&fiber.Cookie{
 			Name:     "sessional_id",
 			Value:    tokenString,
 			HTTPOnly: true,
 			Secure:   false,
-			SameSite: "Strict",
+			SameSite: fiber.CookieSameSiteStrictMode,
 			Expires:  time.Now().Add(time.Hour * 72),
 		})
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": tokenString})
