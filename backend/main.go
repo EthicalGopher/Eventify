@@ -37,9 +37,13 @@ func main() {
 	}))
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowMethods: "POST,GET,PUT,DELETE",
-		AllowOrigins: "*",
+		AllowMethods:     "POST,GET,PUT,DELETE",
+		AllowOrigins:     "http://localhost:5173",
+		AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+		AllowCredentials: true,
+		MaxAge:           300,
 	}))
+
 	server.Unauthorized(app)
 	server.Authorized(app)
 	app.Use(func(c *fiber.Ctx) error {

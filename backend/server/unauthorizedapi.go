@@ -26,6 +26,7 @@ func Unauthorized(app *fiber.App) {
 		if err := c.BodyParser(&body); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
+		fmt.Println(body)
 		if body.Password == "" || body.Email == "" || body.Name == "" || (body.Role != "organizer" && body.Role != "user") {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Password,Email,Name,Role might be missing"})
 		}

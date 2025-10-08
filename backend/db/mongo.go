@@ -89,6 +89,10 @@ func FindEvents(id string) (*[]datatype.Event, error) {
 		}
 		Events = append(Events, event)
 	}
+	if Events == nil {
+		event := datatype.Event{}
+		Events = append(Events, event)
+	}
 	return &Events, nil
 }
 
